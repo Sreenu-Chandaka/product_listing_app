@@ -60,10 +60,11 @@ Beyond the basic requirements, this project includes:
 
 ### State Management: BLoC Pattern
 
-The application uses **flutter_bloc** with two separate BLoCs:
+The application uses **flutter_bloc** with separate BLoCs for different features:
 
-1. **Product BLoC** - Manages product list, filtering, and favorites
+1. **Product BLoC** - Manages product list, filtering, and sorting
 2. **Cart BLoC** - Handles shopping cart operations
+3. **Theme BLoC/State** - Manages dark/light theme switching
 
 This provides:
 - Clear separation of concerns
@@ -105,10 +106,10 @@ lib/
 │   └── screens/
 │       └── cart_screen.dart       # Shopping cart view
 ├── theme/
-│   ├── theme_provider.dart        # Theme state management
+│   ├── theme_provider.dart        # Theme state management (BLoC or similar)
 │   ├── app_theme.dart            # Light theme definition
 │   └── dark_theme.dart           # Dark theme definition
-└── main.dart                      # App entry point with providers
+└── main.dart                      # App entry point with BLoC providers
 ```
 
 ### Why This Structure?
@@ -137,13 +138,11 @@ User Action (Add, Remove, Update Qty) → Event → BLoC → Local Storage → S
 
 ### Key Technologies
 
-- **Flutter SDK** 3.0+ - Cross-platform framework
-- **flutter_bloc** ^8.1.3 - State management for products & cart
-- **equatable** ^2.0.5 - Value equality for BLoC states
-- **dio** ^5.4.0 - HTTP client for API calls
-- **provider** ^6.1.1 - Theme management
-- **shared_preferences** ^2.2.2 - Persistent cart storage
-- **cached_network_image** ^3.3.1 - Optimized image loading
+- **Flutter SDK** 3.10.4+ - Cross-platform framework
+- **flutter_bloc** ^9.1.1 - State management for products & cart
+- **equatable** ^2.0.8 - Value equality for BLoC states
+- **dio** ^5.9.0 - HTTP client for API calls
+- **cached_network_image** ^3.4.1 - Optimized image loading
 
 ### API Integration
 
@@ -210,12 +209,11 @@ Ensure you have the following installed:
    dependencies:
      flutter:
        sdk: flutter
-     flutter_bloc: ^8.1.3
-     equatable: ^2.0.5
-     dio: ^5.4.0
-     provider: ^6.1.1
-     shared_preferences: ^2.2.2
-     cached_network_image: ^3.3.1
+     cupertino_icons: ^1.0.8
+     flutter_bloc: ^9.1.1
+     cached_network_image: ^3.4.1
+     equatable: ^2.0.8
+     dio: ^5.9.0
    ```
 
 4. **Run the application**
@@ -263,11 +261,7 @@ flutter run
 **Issue: Images not loading**
 - Verify internet connection
 - Check API accessibility: https://fakestoreapi.com/products
-- Clear app cache and restart
-
-**Issue: Provider errors**
-- Ensure `provider` package is in `pubspec.yaml`
-- Run `flutter pub get` again
+- Clear app data and restart
 
 ## 📱 User Guide
 
@@ -346,12 +340,12 @@ flutter run
 1. **Internet Dependency**: App requires internet for product data
 2. **API Availability**: FakeStore API is publicly accessible
 3. **Read-Only Products**: App displays but doesn't modify server data
-4. **Single User**: Cart stored locally per device
+4. **Single User**: Cart stored in-memory during app session
 5. **USD Currency**: All prices in US Dollars
 6. **Static Inventory**: Products don't change in real-time
 7. **No Authentication**: Public API, no login required
 8. **No Payment Processing**: Checkout is visual confirmation only
-9. **Local Cart**: Cart stored in device memory (SharedPreferences)
+9. **Session Cart**: Cart clears when app is closed (no persistence)
 10. **Image Availability**: Product image URLs are always valid
 
 ## 🎯 Technical Decisions
@@ -376,28 +370,32 @@ flutter run
 ✅ Easier to test and debug  
 ✅ Better performance (targeted rebuilds)  
 
-### Why Provider for Theme?
+### Why BLoC for Theme?
 
-- ✅ Simpler than BLoC for theme switching
-- ✅ ChangeNotifier is perfect for UI-only state
-- ✅ Less boilerplate code
-- ✅ Direct widget rebuilds on theme change
-- ✅ Easy integration with MaterialApp
+**Implementation**:
+- Theme managed either with BLoC pattern or stateful approach
+- Consistent with app's overall architecture
+- Theme state persists using in-memory state or similar approach
+
+**Benefits**:
+✅ Consistent architecture throughout app  
+✅ Theme changes trigger appropriate rebuilds  
+✅ Clean separation of UI and logic  
+✅ Easy to test theme switching  
 
 ### Cart Persistence Strategy
 
 **Implementation**:
-- Cart items serialized to JSON
-- Stored in SharedPreferences
-- Loaded on app startup
-- Updated on every cart change
+- Cart managed in-memory during app session
+- BLoC maintains cart state
+- State persists while app is running
 
 **Why This Works**:
 - ✅ Simple and reliable
-- ✅ Survives app restarts
-- ✅ No backend required
-- ✅ Fast read/write operations
-- ✅ Good enough for MVP
+- ✅ Fast state updates
+- ✅ No external dependencies needed
+- ✅ Good for MVP and demonstration
+- ✅ Can be extended to use SharedPreferences later
 
 ### Filter Logic
 
@@ -417,7 +415,13 @@ flutter run
 
 ### High Priority
 
-1. **Backend Integration**
+1. **Cart Persistence**
+   - Save cart to local storage
+   - Load cart on app startup
+   - Sync cart across sessions
+   - Cart expiration logic
+
+2. **Backend Integration**
    - Real inventory management
    - User accounts with cloud sync
    - Order history
@@ -572,6 +576,7 @@ flutter run
 1. **API Limitation**: FakeStore API returns only 20 products (no pagination available)
 2. **Static Inventory**: Product availability not tracked (all items always available)
 3. **Checkout Visual**: Checkout button shows confirmation only (no payment processing)
+4. **Session-Only Cart**: Cart does not persist after app closes (clears on restart)
 
 ## 📊 Performance Optimizations
 
@@ -581,7 +586,7 @@ flutter run
 ✅ **Lazy Loading**: ListView.builder for efficient list rendering  
 ✅ **Client-Side Filtering**: Instant filter results without API calls  
 ✅ **Targeted Rebuilds**: BLoC ensures only affected widgets rebuild  
-✅ **Cart Persistence**: Efficient JSON serialization  
+✅ **In-Memory State**: Fast cart operations with BLoC state  
 ✅ **Async Operations**: Non-blocking API calls  
 ✅ **Error Boundaries**: Graceful error handling  
 
