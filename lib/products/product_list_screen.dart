@@ -281,20 +281,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   ),
                 ),
 
-                // Results count
-                if (_filteredProducts.isNotEmpty)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      '${_filteredProducts.length} product${_filteredProducts.length != 1 ? 's' : ''} found',
-                      style: TextStyle(
-                        color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
-
+               
                 // Product list
                 Expanded(
                   child: _filteredProducts.isEmpty
