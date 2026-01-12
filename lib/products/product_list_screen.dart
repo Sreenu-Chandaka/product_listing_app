@@ -22,28 +22,7 @@ class ProductListScreen extends StatefulWidget {
 }
 
 class _ProductListScreenState extends State<ProductListScreen> {
-  final _scrollController = ScrollController();
   ProductFilter _currentFilter = ProductFilter();
-  List<Product> _filteredProducts = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _scrollController.addListener(_onScroll);
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent * 0.9) {
-      context.read<ProductBloc>().add(LoadMoreProducts());
-    }
-  }
 
   List<Product> _applyFilters(List<Product> products) {
     var filtered = products.where((product) {
@@ -178,19 +157,24 @@ class _ProductListScreenState extends State<ProductListScreen> {
           }
 
           if (state is ProductLoaded) {
-            _filteredProducts = _applyFilters(state.products);
+            final filteredProducts = _applyFilters(state.products);
             final categories = _getAvailableCategories(state.products);
 
             return Column(
               children: [
                 // Filter bar
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
                     color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                     border: Border(
                       bottom: BorderSide(
-                        color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+                        color: isDark
+                            ? Colors.grey.shade800
+                            : Colors.grey.shade200,
                       ),
                     ),
                   ),
@@ -199,7 +183,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       Expanded(
                         child: OutlinedButton.icon(
                           onPressed: () async {
-                            final result = await showModalBottomSheet<ProductFilter>(
+                            final result =
+                                await showModalBottomSheet<ProductFilter>(
                               context: context,
                               isScrollControlled: true,
                               backgroundColor: Colors.transparent,
@@ -260,7 +245,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
                             side: BorderSide(
                               color: _currentFilter.hasActiveFilters
                                   ? Theme.of(context).primaryColor
-                                  : (isDark ? Colors.grey.shade700 : Colors.grey.shade300),
+                                  : (isDark
+                                      ? Colors.grey.shade700
+                                      : Colors.grey.shade300),
                             ),
                           ),
                         ),
@@ -281,35 +268,26 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   ),
                 ),
 
-               
                 // Product list
                 Expanded(
-                  child: _filteredProducts.isEmpty
+                  child: filteredProducts.isEmpty
                       ? _buildEmptyState(isDark)
                       : RefreshIndicator(
                           onRefresh: () async {
                             context.read<ProductBloc>().add(RefreshProducts());
-                            await Future.delayed(const Duration(milliseconds: 500));
+                            await Future.delayed(
+                              const Duration(milliseconds: 500),
+                            );
                           },
                           child: ListView.builder(
-                            controller: _scrollController,
                             padding: const EdgeInsets.all(16),
-                            itemCount:
-                                _filteredProducts.length + (state.hasMore ? 1 : 0),
+                            itemCount: filteredProducts.length,
                             itemBuilder: (context, index) {
-                              if (index == _filteredProducts.length) {
-                                return const Center(
-                                  child: Padding(
-                                    padding: EdgeInsets.all(20.0),
-                                    child: CircularProgressIndicator(),
-                                  ),
-                                );
-                              }
-
                               return ProductCard(
-                                product: _filteredProducts[index],
-                                onTap: () =>
-                                    _navigateToDetail(_filteredProducts[index]),
+                                product: filteredProducts[index],
+                                onTap: () => _navigateToDetail(
+                                  filteredProducts[index],
+                                ),
                               );
                             },
                           ),
@@ -349,10 +327,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
             const SizedBox(height: 16),
             const Text(
               'No products found',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
@@ -390,10 +365,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
             const SizedBox(height: 24),
             const Text(
               'Oops! Something went wrong',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             Text(
@@ -408,7 +380,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
             const SizedBox(height: 32),
             ElevatedButton.icon(
               onPressed: () {
-                context.read<ProductBloc>().add(RetryLoadProducts());
+                context.read<ProductBloc>().add(LoadProducts());
               },
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
@@ -419,10 +391,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
               icon: const Icon(Icons.refresh, size: 20),
               label: const Text(
                 'Try Again',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
             ),
           ],
@@ -436,11 +405,8 @@ class ProductCard extends StatelessWidget {
   final Product product;
   final VoidCallback onTap;
 
-  const ProductCard({
-    Key? key,
-    required this.product,
-    required this.onTap,
-  }) : super(key: key);
+  const ProductCard({Key? key, required this.product, required this.onTap})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -473,7 +439,9 @@ class ProductCard extends StatelessWidget {
                     child: Icon(
                       Icons.image_not_supported_outlined,
                       size: 48,
-                      color: isDark ? Colors.grey.shade700 : Colors.grey.shade400,
+                      color: isDark
+                          ? Colors.grey.shade700
+                          : Colors.grey.shade400,
                     ),
                   ),
                 ),
@@ -500,15 +468,17 @@ class ProductCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                     Text(
-  '\$${product.price.toStringAsFixed(2)}',
-  style: TextStyle(
-    fontSize: 22,
-    fontWeight: FontWeight.bold,
-    color: isDark ? Colors.green.shade400 : Theme.of(context).primaryColor,
-    letterSpacing: -0.5,
-  ),
-),
+                      Text(
+                        '\$${product.price.toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: isDark
+                              ? Colors.green.shade400
+                              : Theme.of(context).primaryColor,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 10,

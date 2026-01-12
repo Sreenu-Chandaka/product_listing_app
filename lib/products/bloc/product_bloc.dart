@@ -1,18 +1,14 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../product_service.dart';
-import 'product_event.dart';
-import 'product_state.dart';
+import 'package:product_listing_app/products/bloc/product_event.dart';
+import 'package:product_listing_app/products/bloc/product_state.dart';
+import 'package:product_listing_app/products/product_service.dart';
 
 class ProductBloc extends Bloc<ProductEvent, ProductState> {
   final ProductService _productService;
-  static const int _pageSize = 10;
-  int _currentOffset = 0;
 
   ProductBloc(this._productService) : super(ProductInitial()) {
     on<LoadProducts>(_onLoadProducts);
-    on<LoadMoreProducts>(_onLoadMoreProducts);
     on<RefreshProducts>(_onRefreshProducts);
-    on<RetryLoadProducts>(_onRetryLoadProducts);
   }
 
   Future<void> _onLoadProducts(
@@ -21,49 +17,10 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
   ) async {
     emit(ProductLoading());
     try {
-      _currentOffset = 0;
-      final products = await _productService.fetchProducts(
-        limit: _pageSize,
-        offset: _currentOffset,
-      );
-      _currentOffset += _pageSize;
-      emit(ProductLoaded(
-        products: products,
-        hasMore: products.length == _pageSize,
-      ));
+      final products = await _productService.fetchAllProducts();
+      emit(ProductLoaded(products: products));
     } catch (e) {
       emit(ProductError(e.toString()));
-    }
-  }
-
-  Future<void> _onLoadMoreProducts(
-    LoadMoreProducts event,
-    Emitter<ProductState> emit,
-  ) async {
-    final currentState = state;
-    if (currentState is! ProductLoaded || 
-        !currentState.hasMore || 
-        currentState.isLoadingMore) {
-      return;
-    }
-
-    emit(currentState.copyWith(isLoadingMore: true));
-
-    try {
-      final newProducts = await _productService.fetchProducts(
-        limit: _pageSize,
-        offset: _currentOffset,
-      );
-      
-      _currentOffset += _pageSize;
-
-      emit(ProductLoaded(
-        products: [...currentState.products, ...newProducts],
-        hasMore: newProducts.length == _pageSize,
-        isLoadingMore: false,
-      ));
-    } catch (e) {
-      emit(currentState.copyWith(isLoadingMore: false));
     }
   }
 
@@ -72,29 +29,13 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     Emitter<ProductState> emit,
   ) async {
     try {
-      _currentOffset = 0;
-      final products = await _productService.fetchProducts(
-        limit: _pageSize,
-        offset: _currentOffset,
-      );
-      _currentOffset += _pageSize;
-      emit(ProductLoaded(
-        products: products,
-        hasMore: products.length == _pageSize,
-      ));
+      _productService.clearCache();
+      final products = await _productService.fetchAllProducts(forceRefresh: true);
+      emit(ProductLoaded(products: products));
     } catch (e) {
-      // Keep current state on refresh error
-      if (state is ProductLoaded) {
-        return;
+      if (state is! ProductLoaded) {
+        emit(ProductError(e.toString()));
       }
-      emit(ProductError(e.toString()));
     }
-  }
-
-  Future<void> _onRetryLoadProducts(
-    RetryLoadProducts event,
-    Emitter<ProductState> emit,
-  ) async {
-    add(LoadProducts());
   }
 }
