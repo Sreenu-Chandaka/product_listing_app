@@ -54,7 +54,7 @@ Beyond the basic requirements, this project includes:
 - 🌐 **RESTful API** - Real-time data from FakeStore API
 - 💾 **Local Storage** - Persistent cart and favorites
 - 🎨 **Modern UI/UX** - Material Design 3 principles
-- ⚡ **Performance Optimized** - Lazy loading and efficient state management
+- ⚡ **Performance Optimized** - Efficient state management and caching
 
 ## 🏗️ Architecture and State Management
 
@@ -409,7 +409,7 @@ flutter run
 - ✅ Works offline after initial load
 - ✅ Reduces API load
 - ✅ Better user experience (instant results)
-- ✅ FakeStore API doesn't support server-side filtering
+- ✅ FakeStore API returns all products at once (20 items total)
 
 ## 🚧 Future Improvements
 
@@ -573,7 +573,7 @@ flutter run
 
 ## 🐛 Known Issues
 
-1. **API Limitation**: FakeStore API returns only 20 products (no pagination available)
+1. **API Limitation**: FakeStore API returns only 20 products total
 2. **Static Inventory**: Product availability not tracked (all items always available)
 3. **Checkout Visual**: Checkout button shows confirmation only (no payment processing)
 4. **Session-Only Cart**: Cart does not persist after app closes (clears on restart)
@@ -583,7 +583,7 @@ flutter run
 ### Implemented
 
 ✅ **Image Caching**: Persistent cache with `cached_network_image`  
-✅ **Lazy Loading**: ListView.builder for efficient list rendering  
+✅ **Efficient List Rendering**: ListView.builder for optimal performance  
 ✅ **Client-Side Filtering**: Instant filter results without API calls  
 ✅ **Targeted Rebuilds**: BLoC ensures only affected widgets rebuild  
 ✅ **In-Memory State**: Fast cart operations with BLoC state  
